@@ -29,7 +29,7 @@ export const Dashboard = () => {
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-blue-500 rounded-md p-3">
+              <div className="flex-shrink-0 bg-blue-500 hover:bg-blue-400 rounded-md p-3">
                 <UsersIcon className="h-6 w-6 text-white" />
               </div>
               <div className="ml-5 w-0 flex-1">

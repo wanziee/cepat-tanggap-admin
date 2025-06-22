@@ -1,4 +1,5 @@
 import { Fragment } from 'react';
+import { useState } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation, Link } from 'react-router-dom';
@@ -28,17 +29,66 @@ function classNames(...classes: string[]) {
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Mobile menu */}
       <div className="lg:hidden">
+        <Transition show={sidebarOpen} as={Fragment}>
+  <div className="relative z-40 lg:hidden">
+    <div className="fixed inset-0 bg-gray-700/40" onClick={() => setSidebarOpen(false)}></div>
+
+    <div className="fixed inset-y-0 left-0 max-w-full flex">
+      <Transition.Child
+        as={Fragment}
+        enter="transform transition ease-in-out duration-300 sm:duration-300"
+        enterFrom="-translate-x-full"
+        enterTo="translate-x-0"
+        leave="transform transition ease-in-out duration-300 sm:duration-300"
+        leaveFrom="translate-x-0"
+        leaveTo="-translate-x-full"
+      >
+        <div className="w-64 bg-blue-700 text-white p-4">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold">Cepat Tanggap</h2>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="text-white focus:outline-none"
+            >
+              ✕
+            </button>
+          </div>
+          <nav className="space-y-1">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                onClick={() => setSidebarOpen(false)} // Tutup sidebar saat navigasi
+                className={classNames(
+                  location.pathname === item.href
+                    ? 'bg-blue-800 text-white'
+                    : 'text-blue-100 hover:bg-blue-600 hover:text-white',
+                  'group flex items-center px-2 py-2 text-sm leading-6 font-medium rounded-md'
+                )}
+              >
+                <item.icon className="mr-4 h-6 w-6" aria-hidden="true" />
+                {item.name}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      </Transition.Child>
+    </div>
+  </div>
+</Transition>
+
         <div className="flex items-center justify-between bg-blue-600 p-4">
           <div className="flex items-center">
             <button
               type="button"
               className="inline-flex items-center justify-center p-2 rounded-md text-blue-200 hover:text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-              onClick={() => {}}
+              onClick={() => setSidebarOpen(true)}
             >
               <span className="sr-only">Open main menu</span>
               <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
@@ -87,7 +137,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Main content */}
       <div className="lg:pl-64 flex flex-col flex-1">
-        <div className="sticky top-0 z-10 flex-shrink-0 flex h-16 bg-white shadow">
+        <div className="hidden lg:flex sticky top-0 z-10 flex-shrink-0 h-16 bg-white shadow">
           <div className="flex-1 px-4 flex justify-end">
             <div className="ml-4 flex items-center md:ml-6">
               <button className="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
