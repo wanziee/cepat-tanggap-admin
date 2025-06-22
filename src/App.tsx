@@ -1,0 +1,58 @@
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { Login } from './pages/Login';
+import { Dashboard } from './pages/Dashboard';
+import { UsersPage } from './pages/UsersPage';
+import { Layout } from './components/Layout';
+
+// Define the roles that are allowed to access the admin panel
+const allowedRoles = ['admin', 'rt', 'rw'];
+
+// A wrapper for routes that require authentication
+const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user && !allowedRoles.includes(user.role)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600">Akses Ditolak</h1>
+          <p className="mt-2">Anda tidak memiliki izin untuk mengakses halaman ini.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+};
+
+// Layout wrapper with auth
+const LayoutWrapper = () => (
+  <AuthWrapper>
+    <Layout>
+      <Outlet />
+    </Layout>
+  </AuthWrapper>
+);
+
+function App() {
+  return (
+    <AuthProvider>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route element={<LayoutWrapper />}>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/users" element={<UsersPage />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </AuthProvider>
+  );
+}
+
+export default App;
