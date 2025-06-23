@@ -1,15 +1,78 @@
-import { useAuth } from '../contexts/AuthContext';
-import { UsersIcon, DocumentTextIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { useAuth } from "../contexts/AuthContext";
+import { useEffect, useState } from "react";
+import { getApi } from "../utils/api";
+import {
+  UsersIcon,
+  DocumentTextIcon,
+  UserCircleIcon,
+} from "@heroicons/react/24/outline";
+
+type User = {
+  id: number;
+  nik: string;
+  nama: string;
+  email: string;
+  rt: string;
+  rw: string;
+  role: string;
+  alamat: string;
+  no_hp: string;
+  created_at: string;
+};
+
+type Laporan = {
+  id: number;
+  user_id: string;
+  kategori: string;
+  deskripsi: string;
+  foto: string;
+  lokasi: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  user?: {
+    nik: string;
+    nama: string;
+    email: string;
+    role: string;
+  };
+};
 
 export const Dashboard = () => {
   const { user } = useAuth();
-  
-  if (!user) {
+  const [users, setUsers] = useState<User[]>([]);
+  const [laporans, setLaporans] = useState<Laporan[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const api = getApi();
+        const userRes = await api.get("/api/users");
+        const laporanRes = await api.get("/api/laporan");
+
+        setUsers(userRes.data.data);
+        setLaporans(laporanRes.data.data);
+      } catch (err) {
+        console.error("Gagal memuat data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const totalPengguna = users.length;
+  const totalWarga = users.filter((u) => u.role === "warga").length;
+  const totalLaporan = laporans.length;
+
+  if (!user || loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Memuat data pengguna...</p>
+          <p className="mt-4 text-gray-600">Memuat data dashboard...</p>
         </div>
       </div>
     );
@@ -21,74 +84,53 @@ export const Dashboard = () => {
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <div className="flex items-center space-x-2 text-sm text-gray-600">
           <UserCircleIcon className="h-5 w-5" />
-          <span>{user.name} ({user.role})</span>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {/* Stats Cards */}
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-blue-500 hover:bg-blue-400 rounded-md p-3">
-                <UsersIcon className="h-6 w-6 text-white" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Total Pengguna</dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900">0</div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-green-500 rounded-md p-3">
-                <UsersIcon className="h-6 w-6 text-white" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Total Warga</dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900">0</div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-yellow-500 rounded-md p-3">
-                <DocumentTextIcon className="h-6 w-6 text-white" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Total Laporan</dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900">0</div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
+          <span>
+            {user.name} ({user.role})
+          </span>
         </div>
       </div>
 
-      {/* Recent Activity */}
+      <div
+        className={`grid grid-cols-1 gap-6 sm:grid-cols-2 ${
+          user.role === "admin" ? "lg:grid-cols-3" : "lg:grid-cols-2"
+        }`}
+      >
+        {user.role === "admin" && (
+          <StatCard
+            icon={<UsersIcon className="h-6 w-6 text-white" />}
+            bgColor="bg-blue-500"
+            title="Total Pengguna"
+            count={totalPengguna}
+          />
+        )}
+
+        <StatCard
+          icon={<UsersIcon className="h-6 w-6 text-white" />}
+          bgColor="bg-green-500"
+          title="Total Warga"
+          count={totalWarga}
+        />
+
+        <StatCard
+          icon={<DocumentTextIcon className="h-6 w-6 text-white" />}
+          bgColor="bg-yellow-500"
+          title="Total Laporan"
+          count={totalLaporan}
+        />
+      </div>
+
+      {/* Recent Activity (dummy) */}
       <div className="mt-8">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Aktivitas Terbaru</h2>
+        <h2 className="text-lg font-medium text-gray-900 mb-4">
+          Aktivitas Terbaru
+        </h2>
         <div className="bg-white shadow overflow-hidden sm:rounded-md">
           <ul role="list" className="divide-y divide-gray-200">
             <li className="px-4 py-4 sm:px-6">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-blue-600 truncate">Tidak ada aktivitas terbaru</p>
+                <p className="text-sm font-medium text-blue-600 truncate">
+                  Tidak ada aktivitas terbaru
+                </p>
               </div>
             </li>
           </ul>
@@ -97,3 +139,34 @@ export const Dashboard = () => {
     </div>
   );
 };
+
+// Komponen untuk statistik card
+const StatCard = ({
+  icon,
+  bgColor,
+  title,
+  count,
+}: {
+  icon: React.ReactNode;
+  bgColor: string;
+  title: string;
+  count: number;
+}) => (
+  <div className="bg-white overflow-hidden shadow rounded-lg">
+    <div className="p-5">
+      <div className="flex items-center">
+        <div className={`flex-shrink-0 ${bgColor} rounded-md p-3`}>{icon}</div>
+        <div className="ml-5 w-0 flex-1">
+          <dl>
+            <dt className="text-sm font-medium text-gray-500 truncate">{title}</dt>
+            <dd className="flex items-baseline">
+              <div className="text-2xl font-semibold text-gray-900">
+                {count}
+              </div>
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+);

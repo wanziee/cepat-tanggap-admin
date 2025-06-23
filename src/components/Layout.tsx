@@ -1,5 +1,4 @@
-import { Fragment } from 'react';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation, Link } from 'react-router-dom';
@@ -13,75 +12,88 @@ import {
   Bars3Icon,
 } from '@heroicons/react/24/outline';
 
-const navigation = [
-  { name: 'Beranda', href: '/dashboard', icon: HomeIcon },
-  { name: 'Pengguna', href: '/users', icon: UsersIcon },
-  { name: 'Warga', href: '#', icon: UsersIcon },
-  { name: 'Laporan', href: '#', icon: DocumentTextIcon },
-  { name: 'Statistik', href: '#', icon: ChartBarIcon },
-  { name: 'Pengaturan', href: '#', icon: CogIcon },
-];
-
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
+
+// Fungsi untuk menentukan menu sesuai role
+const getNavigation = (role?: string) => {
+  const nav = [
+    { name: 'Beranda', href: '/dashboard', icon: HomeIcon },
+    { name: 'Warga', href: '/warga', icon: UsersIcon },
+    { name: 'Laporan', href: '/laporan', icon: DocumentTextIcon },
+    { name: 'Statistik', href: '#', icon: ChartBarIcon },
+    { name: 'Pengaturan', href: '#', icon: CogIcon },
+  ];
+
+  // Tambahkan "Pengguna" hanya jika admin
+  if (role === 'admin') {
+    nav.splice(1, 0, { name: 'Pengguna', href: '/users', icon: UsersIcon });
+  }
+
+  return nav;
+};
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigation = getNavigation(user?.role);
 
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Mobile menu */}
       <div className="lg:hidden">
         <Transition show={sidebarOpen} as={Fragment}>
-  <div className="relative z-40 lg:hidden">
-    <div className="fixed inset-0 bg-gray-700/40" onClick={() => setSidebarOpen(false)}></div>
-
-    <div className="fixed inset-y-0 left-0 max-w-full flex">
-      <Transition.Child
-        as={Fragment}
-        enter="transform transition ease-in-out duration-300 sm:duration-300"
-        enterFrom="-translate-x-full"
-        enterTo="translate-x-0"
-        leave="transform transition ease-in-out duration-300 sm:duration-300"
-        leaveFrom="translate-x-0"
-        leaveTo="-translate-x-full"
-      >
-        <div className="w-64 bg-blue-700 text-white p-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold">Cepat Tanggap</h2>
-            <button
+          <div className="relative z-40 lg:hidden">
+            <div
+              className="fixed inset-0 bg-gray-700/40"
               onClick={() => setSidebarOpen(false)}
-              className="text-white focus:outline-none"
-            >
-              ✕
-            </button>
-          </div>
-          <nav className="space-y-1">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                onClick={() => setSidebarOpen(false)} // Tutup sidebar saat navigasi
-                className={classNames(
-                  location.pathname === item.href
-                    ? 'bg-blue-800 text-white'
-                    : 'text-blue-100 hover:bg-blue-600 hover:text-white',
-                  'group flex items-center px-2 py-2 text-sm leading-6 font-medium rounded-md'
-                )}
+            ></div>
+
+            <div className="fixed inset-y-0 left-0 max-w-full flex">
+              <Transition.Child
+                as={Fragment}
+                enter="transform transition ease-in-out duration-300 sm:duration-300"
+                enterFrom="-translate-x-full"
+                enterTo="translate-x-0"
+                leave="transform transition ease-in-out duration-300 sm:duration-300"
+                leaveFrom="translate-x-0"
+                leaveTo="-translate-x-full"
               >
-                <item.icon className="mr-4 h-6 w-6" aria-hidden="true" />
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      </Transition.Child>
-    </div>
-  </div>
-</Transition>
+                <div className="w-64 bg-blue-700 text-white p-4">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold">Cepat Tanggap</h2>
+                    <button
+                      onClick={() => setSidebarOpen(false)}
+                      className="text-white focus:outline-none"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <nav className="space-y-1">
+                    {navigation.map((item) => (
+                      <Link
+                        key={item.name}
+                        to={item.href}
+                        onClick={() => setSidebarOpen(false)}
+                        className={classNames(
+                          location.pathname === item.href
+                            ? 'bg-blue-800 text-white'
+                            : 'text-blue-100 hover:bg-blue-600 hover:text-white',
+                          'group flex items-center px-2 py-2 text-sm leading-6 font-medium rounded-md'
+                        )}
+                      >
+                        <item.icon className="mr-4 h-6 w-6" aria-hidden="true" />
+                        {item.name}
+                      </Link>
+                    ))}
+                  </nav>
+                </div>
+              </Transition.Child>
+            </div>
+          </div>
+        </Transition>
 
         <div className="flex items-center justify-between bg-blue-600 p-4">
           <div className="flex items-center">
@@ -208,4 +220,4 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       </div>
     </div>
   );
-}
+};

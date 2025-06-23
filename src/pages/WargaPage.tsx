@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { getApi } from '../utils/api';
+import { getApi } from "../utils/api";
 import { UserIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 type User = {
@@ -16,58 +16,63 @@ type User = {
   created_at: string;
 };
 
-export const UsersPage = () => {
+export const WargaPage = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { user } = useAuth();
 
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Token tidak ditemukan. Silakan login kembali.");
+        return;
+      }
 
-useEffect(() => {
-  const fetchUsers = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Token tidak ditemukan. Silakan login kembali.");
+      try {
+        const api = getApi();
+        const res = await api.get("/api/users");
+        const data = res.data?.data ?? res.data;
+
+        if (!Array.isArray(data)) throw new Error("Format data tidak valid");
+
+        const warga = data.filter((user: User) => user.role === "warga");
+
+        setUsers(warga);
+      } catch (err: unknown) {
+        const e = err as any;
+        console.error(e);
+
+        if (e.response?.status === 401) {
+          setError("Sesi Anda telah berakhir. Silakan login kembali.");
+          window.location.href = "/login";
+        } else {
+          setError(
+            `Gagal memuat data: ${e.response?.data?.message || e.message}`
+          );
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  const handleDelete = async (userId: number) => {
+    if (!window.confirm("Apakah Anda yakin ingin menghapus pengguna ini?"))
       return;
-    }
 
     try {
       const api = getApi();
-      const res = await api.get("/api/users");
-      const data = res.data?.data ?? res.data;
-
-      if (!Array.isArray(data)) throw new Error("Format data tidak valid");
-      setUsers(data);
-    } catch (err: unknown) {
-      const e = err as any;
-      console.error(e);
-
-      if (e.response?.status === 401) {
-        setError("Sesi Anda telah berakhir. Silakan login kembali.");
-        window.location.href = "/login";
-      } else {
-        setError(`Gagal memuat data: ${e.response?.data?.message || e.message}`);
-      }
-    } finally {
-      setLoading(false);
+      await api.delete(`/api/users/${userId}`);
+      setUsers((prev) => prev.filter((user) => user.id !== userId));
+    } catch (err: any) {
+      console.error("Error deleting user:", err);
+      alert(err.response?.data?.message || "Gagal menghapus pengguna");
     }
   };
-
-  fetchUsers();
-}, []);
-
-const handleDelete = async (userId: number) => {
-  if (!window.confirm("Apakah Anda yakin ingin menghapus pengguna ini?")) return;
-
-  try {
-    const api = getApi();
-    await api.delete(`/api/users/${userId}`);
-    setUsers((prev) => prev.filter((user) => user.id !== userId));
-  } catch (err: any) {
-    console.error("Error deleting user:", err);
-    alert(err.response?.data?.message || "Gagal menghapus pengguna");
-  }
-};
 
   if (loading) {
     return (
@@ -91,13 +96,13 @@ const handleDelete = async (userId: number) => {
   return (
     <div className="p-0 lg:p-3">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Manajemen Pengguna</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Manajemen Warga</h1>
         <button
           onClick={() => {}}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"
         >
           <UserIcon className="h-5 w-5 mr-2" />
-          Tambah Pengguna
+          Tambah Warga
         </button>
       </div>
 
@@ -117,6 +122,18 @@ const handleDelete = async (userId: number) => {
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
                   Nama
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  RT
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  RW
                 </th>
                 <th
                   scope="col"
@@ -146,6 +163,12 @@ const handleDelete = async (userId: number) => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {userItem.nama}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {userItem.rt}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {userItem.rw}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {userItem.email}

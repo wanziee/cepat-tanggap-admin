@@ -3,7 +3,11 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { UsersPage } from './pages/UsersPage';
+import { WargaPage } from './pages/WargaPage'
+import { LaporanPage } from './pages/LaporanPage'
+import { LaporanDetailPage } from './pages/LaporanDetailPage';
 import { Layout } from './components/Layout';
+
 
 // Define the roles that are allowed to access the admin panel
 const allowedRoles = ['admin', 'rt', 'rw'];
@@ -48,6 +52,9 @@ function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/users" element={<UsersPage />} />
+          <Route path="/warga" element={<WargaPage />} />
+          <Route path="/laporan" element={<LaporanPage />} />
+          <Route path="/laporan/:id" element={<LaporanDetailPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
