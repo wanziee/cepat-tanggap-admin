@@ -1,15 +1,9 @@
 import {
-  UserIcon,
-  MapIcon,
-  PhoneIcon,
-  MapPinIcon,
-  CalendarIcon,
   ArrowLeftIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { getApi } from "../utils/api";
 
 type User = {
@@ -18,6 +12,7 @@ type User = {
   nik: string;
   role: string;
   no_hp: string;
+  alamat?: string;
 };
 
 type Laporan = {
@@ -26,15 +21,17 @@ type Laporan = {
   deskripsi: string;
   foto?: string;
   lokasi: string;
-  status: "pending" | "diproses" | "selesai";
+  kd_laporan: string;
+  status: "pending" | "diproses" | "selesai" | "ditolak";
   createdAt: string;
   user?: User;
 };
 
 const statusColorMap: Record<Laporan["status"], string> = {
-  pending: "bg-red-100 text-red-800",
+  pending: "bg-gray-100 text-gray-800",
   diproses: "bg-yellow-100 text-yellow-800",
   selesai: "bg-green-100 text-green-800",
+  ditolak: "bg-red-100 text-red-800",
 };
 
 export const LaporanDetailPage = () => {
@@ -43,13 +40,18 @@ export const LaporanDetailPage = () => {
   const [laporan, setLaporan] = useState<Laporan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [status, setStatus] = useState<Laporan["status"]>("pending");
+  const [tanggapan, setTanggapan] = useState("");
+  const [file, setFile] = useState<File | null>(null);
 
   useEffect(() => {
     const fetchDetail = async () => {
       try {
         const api = getApi();
         const res = await api.get(`/api/laporan/${id}`);
-        setLaporan(res.data.data);
+        const data: Laporan = res.data.data;
+        setLaporan(data);
+        setStatus(data.status);
       } catch {
         setError("Gagal memuat detail laporan");
       } finally {
@@ -59,6 +61,29 @@ export const LaporanDetailPage = () => {
 
     fetchDetail();
   }, [id]);
+
+  const handleSubmit = async () => {
+    try {
+      const api = getApi();
+      const formData = new FormData();
+
+      formData.append("status", status);
+      formData.append("tanggapan", tanggapan);
+      if (file) {
+        formData.append("foto", file);
+      }
+
+      await api.put(`/api/laporan/${laporan?.id}/status`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      navigate("/laporan");
+    } catch (err) {
+      alert("Gagal menyimpan perubahan.");
+    }
+  };
 
   if (loading) {
     return (
@@ -74,8 +99,6 @@ export const LaporanDetailPage = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
-      {/* Tombol Kembali */}
-
       <button
         onClick={() => navigate(-1)}
         className="flex items-center text-indigo-600 hover:text-indigo-800 font-medium mb-4"
@@ -89,76 +112,147 @@ export const LaporanDetailPage = () => {
           Laporan
         </Link>
         <ChevronRightIcon className="w-4 h-4 text-gray-400" />
-        <span className="text-gray-400 font-medium">Laporan #{laporan.id}</span>
+        <span className="text-gray-400 font-medium">
+          Laporan #{laporan.kd_laporan}
+        </span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
         {/* Detail Laporan */}
-        <div className="lg:col-span-3 order-2 lg:order-1 bg-white p-6 rounded-lg shadow divide-y divide-gray-200">
+        <div className="lg:col-span-3 order-2 lg:order-1 bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-bold text-gray-800 mb-4">
             📝 Detail Laporan
           </h2>
-          <div className="space-y-4 pb-4">
-            <p>
-              <strong>Kategori:</strong> {laporan.kategori}
-            </p>
-            <p className="flex items-center text-gray-700">
-              <MapPinIcon className="w-5 h-5 mr-2" />
-              {laporan.lokasi}
-            </p>
-            <p className="flex items-center text-gray-700">
-              <CalendarIcon className="w-5 h-5 mr-2" />
-              {new Date(laporan.createdAt).toLocaleString()}
-            </p>
-            <p>
-              <span className="font-medium">Status:</span>{" "}
+          <div className="space-y-4 text-sm text-gray-700">
+            <div>
+              <p className="font-semibold">Kategori:</p>
+              <p>{laporan.kategori}</p>
+            </div>
+            <div>
+              <p className="font-semibold">Lokasi:</p>
+              <p>{laporan.lokasi}</p>
+            </div>
+            <div>
+              <p className="font-semibold">Tanggal Buat:</p>
+              <p>{new Date(laporan.createdAt).toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="font-semibold">Status:</p>
               <span
-                className={`ml-2 px-2 py-1 text-sm rounded-full ${
-                  statusColorMap[laporan.status]
-                }`}
+                className={`inline-block mt-1 px-2 py-1 text-sm rounded-full ${statusColorMap[laporan.status]}`}
               >
                 {laporan.status.toUpperCase()}
               </span>
-            </p>
+            </div>
+            <div>
+              <p className="font-semibold">Permasalahan:</p>
+              <p>{laporan.deskripsi}</p>
+            </div>
           </div>
-          <div className="pt-4">
-            <p className="font-medium">Deskripsi:</p>
-            <p className="text-gray-600">{laporan.deskripsi}</p>
+
+
+<hr className="my-6 border-t border-gray-200" />
+          
+          <div className="">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">
+              👤 Detail Pelapor
+            </h2>
+            <div className="space-y-4 text-sm text-gray-700">
+              <div>
+                <p className="font-semibold">Nama:</p>
+                <p>{laporan.user?.nama || "-"}</p>
+              </div>
+              <div>
+                <p className="font-semibold">Email:</p>
+                <p>{laporan.user?.email?.trim() || "-"}</p>
+              </div>
+              <div>
+                <p className="font-semibold">NIK:</p>
+                <p>{laporan.user?.nik || "-"}</p>
+              </div>
+              <div>
+                <p className="font-semibold">Nomor HP:</p>
+                <p>{laporan.user?.no_hp || "-"}</p>
+              </div>
+              <div>
+                <p className="font-semibold">Alamat:</p>
+                <p>{laporan.user?.alamat || "-"}</p>
+              </div>
+              <div>
+                <p className="font-semibold">Role:</p>
+                <p>{laporan.user?.role || "-"}</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Foto */}
-        {laporan.foto && (
-          <div className="lg:col-span-3 order-1 lg:order-2">
+        {/* Foto & Detail Pelapor */}
+        <div className="lg:col-span-3 order-1 lg:order-2 flex flex-col gap-6">
+          {laporan.foto && (
             <img
               src={`http://localhost:3000${laporan.foto}`}
               alt="Foto Laporan"
               className="w-full h-64 object-cover rounded-lg shadow"
             />
-          </div>
-        )}
+          )}
 
-        {/* Detail Pelapor */}
-        <div className="lg:col-span-3 order-3 bg-white p-6 rounded-lg shadow divide-y divide-gray-200">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">
-            👤 Detail Pelapor
-          </h2>
-          <div className="space-y-4 text-gray-700 pt-2">
-            <div className="flex items-center">
-              <UserIcon className="w-5 h-5 mr-2" /> {laporan.user?.nama || "-"}
-            </div>
-            <div className="flex items-center">
-              <MapIcon className="w-5 h-5 mr-2" /> {laporan.user?.email || "-"}
-            </div>
-            <div className="flex items-center">
-              <PhoneIcon className="w-5 h-5 mr-2" />{" "}
-              {laporan.user?.no_hp || "-"}
-            </div>
-            <div className="flex items-center">
-              <span className="w-5 h-5 mr-2" /> <strong>Role:</strong>{" "}
-              {laporan.user?.role || "-"}
-            </div>
+          {/* Form Ubah Status */}
+          <div className=" space-y-4 bg-white p-6 rounded-lg shadow">
+            <label className="block text-sm font-medium text-gray-700">
+              Ubah Status
+            </label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as Laporan["status"])}
+              className="w-full p-2 border border-gray-300 rounded"
+            >
+              <option value="ditolak">Ditolak</option>
+              <option value="pending">Pending</option>
+              <option value="diproses">Diproses</option>
+              <option value="selesai">Selesai</option>
+            </select>
+
+            <label className="block text-sm font-medium text-gray-700">
+              Tanggapan
+            </label>
+            <textarea
+              value={tanggapan}
+              onChange={(e) => setTanggapan(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded"
+              placeholder="Masukkan tanggapan..."
+              rows={3}
+            />
+
+            <label className="block text-sm font-medium text-gray-700">
+              Foto Tanggapan
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              className="block w-full text-sm text-gray-700 border border-gray-300 rounded"
+            />
+
+            {file && (
+              <div className="mt-4">
+                <p className="text-sm text-gray-600 mb-1">Preview Foto:</p>
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt="Preview"
+                  className="w-full max-h-64 object-cover rounded border"
+                />
+              </div>
+            )}
+
+            <button
+              onClick={handleSubmit}
+              className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+            >
+              Simpan
+            </button>
           </div>
+
+          
         </div>
       </div>
     </div>

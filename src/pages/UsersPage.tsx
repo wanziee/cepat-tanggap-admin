@@ -37,7 +37,13 @@ useEffect(() => {
       const data = res.data?.data ?? res.data;
 
       if (!Array.isArray(data)) throw new Error("Format data tidak valid");
-      setUsers(data);
+
+      // ✅ Filter user berdasarkan role
+      const filtered = data.filter(
+        (user: any) => ["admin", "rt", "rw"].includes(user.role)
+      );
+
+      setUsers(filtered);
     } catch (err: unknown) {
       const e = err as any;
       console.error(e);
@@ -55,6 +61,7 @@ useEffect(() => {
 
   fetchUsers();
 }, []);
+
 
 const handleDelete = async (userId: number) => {
   if (!window.confirm("Apakah Anda yakin ingin menghapus pengguna ini?")) return;

@@ -4,6 +4,7 @@ import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { UsersPage } from './pages/UsersPage';
 import { WargaPage } from './pages/WargaPage'
+import { TambahWargaPage } from './pages/TambahWargaPage';
 import { LaporanPage } from './pages/LaporanPage'
 import { LaporanDetailPage } from './pages/LaporanDetailPage';
 import { Layout } from './components/Layout';
@@ -53,6 +54,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/warga" element={<WargaPage />} />
+          <Route path="/warga/tambah" element={<TambahWargaPage />} />
           <Route path="/laporan" element={<LaporanPage />} />
           <Route path="/laporan/:id" element={<LaporanDetailPage />} />
         </Route>

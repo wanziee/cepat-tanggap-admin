@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { getApi } from "../utils/api";
 import { UserIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 
 type User = {
   id: number;
@@ -21,6 +22,12 @@ export const WargaPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // ...
+
+  const [selectedRT, setSelectedRT] = useState("semua");
+  const [selectedRW, setSelectedRW] = useState("semua");
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -38,18 +45,15 @@ export const WargaPage = () => {
         if (!Array.isArray(data)) throw new Error("Format data tidak valid");
 
         const warga = data.filter((user: User) => user.role === "warga");
-
         setUsers(warga);
-      } catch (err: unknown) {
-        const e = err as any;
-        console.error(e);
-
-        if (e.response?.status === 401) {
+      } catch (err: any) {
+        console.error(err);
+        if (err.response?.status === 401) {
           setError("Sesi Anda telah berakhir. Silakan login kembali.");
           window.location.href = "/login";
         } else {
           setError(
-            `Gagal memuat data: ${e.response?.data?.message || e.message}`
+            `Gagal memuat data: ${err.response?.data?.message || err.message}`
           );
         }
       } finally {
@@ -73,6 +77,13 @@ export const WargaPage = () => {
       alert(err.response?.data?.message || "Gagal menghapus pengguna");
     }
   };
+
+  // Filter berdasarkan RT & RW
+  const filteredUsers = users.filter((user) => {
+    const matchRT = selectedRT === "semua" || user.rt === selectedRT;
+    const matchRW = selectedRW === "semua" || user.rw === selectedRW;
+    return matchRT && matchRW;
+  });
 
   if (loading) {
     return (
@@ -98,7 +109,7 @@ export const WargaPage = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Manajemen Warga</h1>
         <button
-          onClick={() => {}}
+          onClick={() => navigate("/warga/tambah")}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"
         >
           <UserIcon className="h-5 w-5 mr-2" />
@@ -106,74 +117,88 @@ export const WargaPage = () => {
         </button>
       </div>
 
+      {/* Filter RT dan RW */}
+      <div className="flex flex-wrap gap-4 mb-4">
+        <div>
+          <label className="text-sm font-medium text-gray-700">Filter RT</label>
+          <select
+            value={selectedRT}
+            onChange={(e) => setSelectedRT(e.target.value)}
+            className="ml-2 border border-gray-300 rounded p-1"
+          >
+            <option value="semua">Semua</option>
+            {[...new Set(users.map((u) => u.rt))].map((rt) => (
+              <option key={rt} value={rt}>
+                RT {rt}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-gray-700">Filter RW</label>
+          <select
+            value={selectedRW}
+            onChange={(e) => setSelectedRW(e.target.value)}
+            className="ml-2 border border-gray-300 rounded p-1"
+          >
+            <option value="semua">Semua</option>
+            {[...new Set(users.map((u) => u.rw))].map((rw) => (
+              <option key={rw} value={rw}>
+                RW {rw}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   NIK
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Nama
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   RT
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   RW
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Email
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Role
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Aksi
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((userItem) => (
+              {filteredUsers.map((userItem) => (
                 <tr key={userItem.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 text-sm text-gray-900">
                     {userItem.nik}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 text-sm text-gray-900">
                     {userItem.nama}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-gray-500">
                     {userItem.rt}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-gray-500">
                     {userItem.rw}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {userItem.email}
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {!userItem.email?.trim() ? "-" : userItem.email}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4">
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         userItem.role === "admin"
@@ -186,7 +211,7 @@ export const WargaPage = () => {
                       {userItem.role.toUpperCase()}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-6 py-4 text-right text-sm font-medium">
                     <button
                       onClick={() => {}}
                       className="text-indigo-600 hover:text-indigo-900 mr-4"
@@ -203,6 +228,13 @@ export const WargaPage = () => {
                   </td>
                 </tr>
               ))}
+              {filteredUsers.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="text-center py-4 text-gray-500">
+                    Tidak ada warga ditemukan.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
