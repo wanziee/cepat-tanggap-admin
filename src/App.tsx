@@ -7,6 +7,8 @@ import { WargaPage } from './pages/WargaPage'
 import { TambahWargaPage } from './pages/TambahWargaPage';
 import { LaporanPage } from './pages/LaporanPage'
 import { LaporanDetailPage } from './pages/LaporanDetailPage';
+import  {RekapKasPage}  from './pages/RekapKasPage'
+
 import { Layout } from './components/Layout';
 
 
@@ -49,15 +51,16 @@ function App() {
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route element={<LayoutWrapper />}>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/users" element={<UsersPage />} />
-          <Route path="/warga" element={<WargaPage />} />
-          <Route path="/warga/tambah" element={<TambahWargaPage />} />
-          <Route path="/laporan" element={<LaporanPage />} />
-          <Route path="/laporan/:id" element={<LaporanDetailPage />} />
-        </Route>
+<Route element={<LayoutWrapper />}>
+  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+  <Route path="/dashboard" element={<Dashboard />} />
+  <Route path="/users" element={<UsersPage />} />
+  <Route path="/warga" element={<WargaPage />} />
+  <Route path="/warga/tambah" element={<TambahWargaPage />} />
+  <Route path="/laporan" element={<LaporanPage />} />
+  <Route path="/laporan/:id" element={<LaporanDetailPage />} />
+  <Route path="/rekap-kas" element={<RekapKasPage />} />
+</Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>

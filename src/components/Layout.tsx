@@ -11,7 +11,8 @@ import {
   CogIcon,
   Bars3Icon,
   XMarkIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
+  CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
 
 function classNames(...classes: string[]) {
@@ -26,15 +27,25 @@ const getNavigation = (role?: string) => {
       name: 'Laporan',
       icon: DocumentTextIcon,
       children: [
-    { name: 'Laporan Masuk', href: '/laporan?status=pending' },
-    { name: 'Laporan Diproses', href: '/laporan?status=diproses' },
-    { name: 'Laporan Selesai', href: '/laporan?status=selesai' },
-    { name: 'Laporan Ditolak', href: '/laporan?status=ditolak' },
+        { name: 'Laporan Masuk', href: '/laporan?status=pending' },
+        { name: 'Laporan Diproses', href: '/laporan?status=diproses' },
+        { name: 'Laporan Selesai', href: '/laporan?status=selesai' },
+        { name: 'Laporan Ditolak', href: '/laporan?status=ditolak' },
       ],
     },
     { name: 'Statistik', href: '#', icon: ChartBarIcon },
     { name: 'Pengaturan', href: '#', icon: CogIcon },
   ];
+
+  if (['rt', 'rw', 'admin'].includes(role || '')) {
+    nav.splice(3, 0, {
+      name: 'Lapor Kas',
+      icon: CurrencyDollarIcon,
+      children: [
+        { name: 'Rekap Kas', href: '/rekap-kas' },
+      ],
+    });
+  }
 
   if (role === 'admin') {
     nav.splice(1, 0, { name: 'Pengguna', href: '/users', icon: UsersIcon });
@@ -52,7 +63,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Mobile header */}
+      {/* Mobile Header */}
       <div className="lg:hidden flex items-center justify-between bg-blue-600 p-4 text-white">
         <button onClick={() => setSidebarOpen(true)}>
           <Bars3Icon className="w-6 h-6" />
@@ -148,7 +159,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Sidebar Desktop */}
       <div className="hidden lg:flex lg:w-64 lg:flex-col fixed top-0 bottom-0 z-50 bg-blue-700 text-white">
-
         <div className="flex items-center justify-center h-16 font-bold text-xl">
           Cepat Tanggap
         </div>
@@ -215,7 +225,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         </nav>
       </div>
 
-      {/* Header desktop */}
+      {/* Header Desktop */}
       <div className="hidden lg:flex sticky top-0 z-40 h-16 bg-white shadow justify-end px-4 items-center">
         <button className="p-1 text-gray-500 hover:text-gray-700">
           <BellIcon className="h-6 w-6" />
@@ -267,7 +277,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         </Menu>
       </div>
 
-      {/* Main content */}
+      {/* Main Content */}
       <div className="lg:pl-64 flex flex-col flex-1">
         <main className="flex-1">
           <div className="py-6">
