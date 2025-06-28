@@ -2,6 +2,7 @@ import { Fragment, useState } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation, Link } from 'react-router-dom';
+import logo from '../assets/logo.png';
 import {
   ChartBarIcon,
   DocumentTextIcon,
@@ -64,11 +65,14 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Mobile Header */}
-      <div className="lg:hidden flex items-center justify-between bg-blue-600 p-4 text-white">
+      <div className="lg:hidden flex items-center justify-between bg-[#0B39AA] p-4 text-white">
         <button onClick={() => setSidebarOpen(true)}>
           <Bars3Icon className="w-6 h-6" />
         </button>
-        <span className="text-lg font-bold">Cepat Tanggap</span>
+  <div className="flex items-center justify-center  space-x-2 px-4">
+    <img src={logo} alt="Logo" className="h-8 w-8 object-contain" />
+    <span className="font-bold text-xl">Cepat Tanggap</span>
+  </div>
         <div className="h-6 w-6" />
       </div>
 
@@ -158,10 +162,11 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       </Transition>
 
       {/* Sidebar Desktop */}
-      <div className="hidden lg:flex lg:w-64 lg:flex-col fixed top-0 bottom-0 z-50 bg-blue-700 text-white">
-        <div className="flex items-center justify-center h-16 font-bold text-xl">
-          Cepat Tanggap
-        </div>
+      <div className="hidden lg:flex lg:w-64 lg:flex-col fixed top-0 bottom-0 z-50 bg-[#0B39AA] text-white">
+  <div className="flex items-center justify-center h-16 space-x-2 px-4">
+    <img src={logo} alt="Logo" className="h-10 w-10 object-contain" />
+    <span className="font-bold text-xl">Cepat Tanggap</span>
+  </div>
         <nav className="mt-5 px-2 space-y-1">
           {navigation.map((item) => (
             <div key={item.name}>
@@ -231,9 +236,17 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           <BellIcon className="h-6 w-6" />
         </button>
         <Menu as="div" className="ml-3 relative">
-          <Menu.Button className="flex items-center text-sm bg-white rounded-full focus:outline-none">
+          <Menu.Button className="flex items-center space-x-3 text-sm bg-white rounded-full focus:outline-none">
             <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
               {user?.name?.charAt(0) || 'U'}
+            </div>
+            <div className="text-left">
+              <div className="text-sm font-medium text-gray-700">{user?.name}</div>
+              <div className="text-xs text-gray-500 capitalize">
+                {user?.role}{' '}
+                {(user?.role === 'rt' || user?.role === 'rw') &&
+                  `(RT ${user?.rt || '-'} / RW ${user?.rw || '-'})`}
+              </div>
             </div>
           </Menu.Button>
           <Transition

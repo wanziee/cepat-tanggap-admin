@@ -24,8 +24,6 @@ export const WargaPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // ...
-
   const [selectedRT, setSelectedRT] = useState("semua");
   const [selectedRW, setSelectedRW] = useState("semua");
 
@@ -44,7 +42,18 @@ export const WargaPage = () => {
 
         if (!Array.isArray(data)) throw new Error("Format data tidak valid");
 
-        const warga = data.filter((user: User) => user.role === "warga");
+        let warga = data.filter((u: User) => u.role === "warga");
+
+        // Filter sesuai role
+if (user?.role === "rt") {
+  warga = warga.filter(
+    (u) => u.rt?.toString() === user.rt?.toString() && u.rw?.toString() === user.rw?.toString()
+  );
+} else if (user?.role === "rw") {
+  warga = warga.filter((u) => u.rw?.toString() === user.rw?.toString());
+}
+
+
         setUsers(warga);
       } catch (err: any) {
         console.error(err);
@@ -62,11 +71,10 @@ export const WargaPage = () => {
     };
 
     fetchUsers();
-  }, []);
+  }, [user]);
 
   const handleDelete = async (userId: number) => {
-    if (!window.confirm("Apakah Anda yakin ingin menghapus pengguna ini?"))
-      return;
+    if (!window.confirm("Apakah Anda yakin ingin menghapus pengguna ini?")) return;
 
     try {
       const api = getApi();
@@ -78,7 +86,6 @@ export const WargaPage = () => {
     }
   };
 
-  // Filter berdasarkan RT & RW
   const filteredUsers = users.filter((user) => {
     const matchRT = selectedRT === "semua" || user.rt === selectedRT;
     const matchRW = selectedRW === "semua" || user.rw === selectedRW;
@@ -95,10 +102,7 @@ export const WargaPage = () => {
 
   if (error) {
     return (
-      <div
-        className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4"
-        role="alert"
-      >
+      <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
         <p>{error}</p>
       </div>
     );
@@ -117,84 +121,64 @@ export const WargaPage = () => {
         </button>
       </div>
 
-      {/* Filter RT dan RW */}
-      <div className="flex flex-wrap gap-4 mb-4">
-        <div>
-          <label className="text-sm font-medium text-gray-700">Filter RT</label>
-          <select
-            value={selectedRT}
-            onChange={(e) => setSelectedRT(e.target.value)}
-            className="ml-2 border border-gray-300 rounded p-1"
-          >
-            <option value="semua">Semua</option>
-            {[...new Set(users.map((u) => u.rt))].map((rt) => (
-              <option key={rt} value={rt}>
-                RT {rt}
-              </option>
-            ))}
-          </select>
-        </div>
+      {/* Filter hanya untuk admin */}
+      {user?.role === "admin" && (
+        <div className="flex flex-wrap gap-4 mb-4">
+          <div>
+            <label className="text-sm font-medium text-gray-700">Filter RT</label>
+            <select
+              value={selectedRT}
+              onChange={(e) => setSelectedRT(e.target.value)}
+              className="ml-2 border border-gray-300 rounded p-1"
+            >
+              <option value="semua">Semua</option>
+              {[...new Set(users.map((u) => u.rt))].map((rt) => (
+                <option key={rt} value={rt}>
+                  RT {rt}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div>
-          <label className="text-sm font-medium text-gray-700">Filter RW</label>
-          <select
-            value={selectedRW}
-            onChange={(e) => setSelectedRW(e.target.value)}
-            className="ml-2 border border-gray-300 rounded p-1"
-          >
-            <option value="semua">Semua</option>
-            {[...new Set(users.map((u) => u.rw))].map((rw) => (
-              <option key={rw} value={rw}>
-                RW {rw}
-              </option>
-            ))}
-          </select>
+          <div>
+            <label className="text-sm font-medium text-gray-700">Filter RW</label>
+            <select
+              value={selectedRW}
+              onChange={(e) => setSelectedRW(e.target.value)}
+              className="ml-2 border border-gray-300 rounded p-1"
+            >
+              <option value="semua">Semua</option>
+              {[...new Set(users.map((u) => u.rw))].map((rw) => (
+                <option key={rw} value={rw}>
+                  RW {rw}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  NIK
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Nama
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  RT
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  RW
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Email
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Role
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Aksi
-                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">NIK</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">RT</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">RW</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredUsers.map((userItem) => (
                 <tr key={userItem.id}>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {userItem.nik}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {userItem.nama}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {userItem.rt}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {userItem.rw}
-                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{userItem.nik}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{userItem.nama}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500">{userItem.rt}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500">{userItem.rw}</td>
                   <td className="px-6 py-4 text-sm text-gray-500">
                     {!userItem.email?.trim() ? "-" : userItem.email}
                   </td>

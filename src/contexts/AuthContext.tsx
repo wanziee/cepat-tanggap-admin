@@ -11,6 +11,8 @@ interface User {
   email: string;
   nik: string;
   role: UserRole;
+  rt?: string;
+  rw?: string;
 }
 
 interface AuthContextType {
@@ -69,8 +71,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           });
 
           const response = await api.get('/api/auth/me');
-
           const userData = response.data?.data;
+
           if (!userData) throw new Error('Data user tidak ditemukan');
 
           const user: User = {
@@ -79,6 +81,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             email: userData.email,
             nik: userData.nik || '',
             role: (userData.role as UserRole) || 'admin',
+            rt: userData.rt || undefined,
+            rw: userData.rw || undefined,
           };
 
           setUserWithPersistence(user);
@@ -104,7 +108,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setError(null);
 
     try {
-      // Buat instance axios dengan konfigurasi default
       const api = axios.create({
         baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
         withCredentials: true,
@@ -129,6 +132,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email: userData.email,
         nik: userData.nik || '',
         role: (userData.role as UserRole) || 'admin',
+        rt: userData.rt || undefined,
+        rw: userData.rw || undefined,
       };
 
       setUserWithPersistence(user);
@@ -139,7 +144,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const errorMessage =
         err?.response?.data?.message || err?.message || 'Login gagal';
-      alert(errorMessage); // ✅ feedback ke user
+      alert(errorMessage);
       setError(errorMessage);
       setUserWithPersistence(null);
       setTokenWithPersistence(null);
