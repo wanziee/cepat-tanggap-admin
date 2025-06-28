@@ -10,6 +10,8 @@ import { LaporanDetailPage } from './pages/LaporanDetailPage';
 import  {RekapKasPage}  from './pages/RekapKasPage'
 
 import { Layout } from './components/Layout';
+import { KasBulananPage } from './pages/KasBulananPage'
+import { PantauKasPage } from './pages/PantauKasPage';
 
 
 // Define the roles that are allowed to access the admin panel
@@ -60,6 +62,8 @@ function App() {
   <Route path="/laporan" element={<LaporanPage />} />
   <Route path="/laporan/:id" element={<LaporanDetailPage />} />
   <Route path="/rekap-kas" element={<RekapKasPage />} />
+  <Route path="/upload-kas" element={<KasBulananPage />} />
+  <Route path="/pantau-kas" element={<PantauKasPage />} />
 </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

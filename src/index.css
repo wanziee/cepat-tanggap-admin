@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
+
+
 /* Untuk memastikan cetakan hitam putih */
 /* index.css atau App.css */
-@media print {
+/* @media print {
   .pdf-export * {
     color: black !important;
     background: white !important;
@@ -14,7 +16,7 @@
   .pdf-export table td {
     border: 1px solid black !important;
   }
-}
+} */
 
 /* html,
 body,

@@ -4,12 +4,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLocation, Link } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import {
-  ChartBarIcon,
   DocumentTextIcon,
   BellIcon,
   HomeIcon,
   UsersIcon,
-  CogIcon,
   Bars3Icon,
   XMarkIcon,
   ChevronDownIcon,
@@ -20,11 +18,25 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-const getNavigation = (role?: string) => {
-  const nav = [
+type NavItem = {
+  name: string;
+  href?: string;
+  icon: React.ElementType;
+  children?: { name: string; href: string }[];
+};
+
+const getNavigation = (role?: string): NavItem[] => {
+  const nav: NavItem[] = [
     { name: 'Beranda', href: '/dashboard', icon: HomeIcon },
     { name: 'Warga', href: '/warga', icon: UsersIcon },
-    {
+  ];
+
+  if (role === 'admin') {
+    // Tambahkan "Pengguna" setelah Beranda
+    nav.splice(1, 0, { name: 'Pengguna', href: '/users', icon: UsersIcon });
+
+    // Tambahkan "Laporan" setelah Statistik
+    nav.splice(3, 0, {
       name: 'Laporan',
       icon: DocumentTextIcon,
       children: [
@@ -33,27 +45,39 @@ const getNavigation = (role?: string) => {
         { name: 'Laporan Selesai', href: '/laporan?status=selesai' },
         { name: 'Laporan Ditolak', href: '/laporan?status=ditolak' },
       ],
-    },
-    { name: 'Statistik', href: '#', icon: ChartBarIcon },
-    { name: 'Pengaturan', href: '#', icon: CogIcon },
-  ];
+    });
 
-  if (['rt', 'rw', 'admin'].includes(role || '')) {
+    // Tambahkan "Pantau Kas" setelah Laporan
+    nav.splice(4, 0, {
+      name: 'Pantau Kas',
+      href: '/pantau-kas',
+      icon: CurrencyDollarIcon,
+    });
+  } else if (role === 'rt' || role === 'rw') {
+    // Laporan single link
+    nav.splice(2, 0, {
+      name: 'Laporan',
+      href: '/laporan',
+      icon: DocumentTextIcon,
+    });
+
+    // Tambahkan "Lapor Kas" setelah Laporan
+    const kasChildren = [{ name: 'Rekap Kas', href: '/rekap-kas' }];
+    if (role === 'rt') {
+      kasChildren.push({ name: 'Upload Laporan', href: '/upload-kas' });
+    }
+
     nav.splice(3, 0, {
       name: 'Lapor Kas',
       icon: CurrencyDollarIcon,
-      children: [
-        { name: 'Rekap Kas', href: '/rekap-kas' },
-      ],
+      children: kasChildren,
     });
-  }
-
-  if (role === 'admin') {
-    nav.splice(1, 0, { name: 'Pengguna', href: '/users', icon: UsersIcon });
   }
 
   return nav;
 };
+
+
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { user, logout } = useAuth();
@@ -62,6 +86,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const [openDropdownName, setOpenDropdownName] = useState<string | null>(null);
   const navigation = getNavigation(user?.role);
 
+  const isDropdownActive = (children: { href: string }[]) => {
+    return children.some(child => location.pathname + location.search === child.href);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Mobile Header */}
@@ -69,10 +97,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         <button onClick={() => setSidebarOpen(true)}>
           <Bars3Icon className="w-6 h-6" />
         </button>
-  <div className="flex items-center justify-center  space-x-2 px-4">
-    <img src={logo} alt="Logo" className="h-8 w-8 object-contain" />
-    <span className="font-bold text-xl">Cepat Tanggap</span>
-  </div>
+        <div className="flex items-center justify-center  space-x-2 px-4">
+          <img src={logo} alt="Logo" className="h-8 w-8 object-contain" />
+          <span className="font-bold text-xl">Cepat Tanggap</span>
+        </div>
         <div className="h-6 w-6" />
       </div>
 
@@ -89,7 +117,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             leaveFrom="translate-x-0"
             leaveTo="-translate-x-full"
           >
-            <div className="relative z-50 w-64 bg-blue-700 text-white p-4">
+            <div className="relative z-50 w-64 bg-[#0B39AA] text-white p-4">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">Cepat Tanggap</h2>
                 <button onClick={() => setSidebarOpen(false)}>
@@ -103,11 +131,14 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                       <>
                         <button
                           onClick={() =>
-                            setOpenDropdownName(
-                              openDropdownName === item.name ? null : item.name
-                            )
+                            setOpenDropdownName(openDropdownName === item.name ? null : item.name)
                           }
-                          className="flex justify-between w-full items-center px-2 py-2 rounded-md hover:bg-blue-600"
+                          className={classNames(
+                            isDropdownActive(item.children)
+                              ? 'bg-[#082F8C] text-white'
+                              : 'text-white/80 hover:bg-[#2F54B6] hover:text-white',
+                            'flex justify-between w-full items-center px-2 py-2 rounded-md text-sm font-medium transition'
+                          )}
                         >
                           <div className="flex items-center">
                             <item.icon className="w-5 h-5 mr-3" />
@@ -131,22 +162,27 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                               key={sub.name}
                               to={sub.href}
                               onClick={() => setSidebarOpen(false)}
-                              className="block px-2 py-1 rounded-md text-sm hover:bg-blue-600 text-blue-100"
+                              className={classNames(
+                                location.pathname + location.search === sub.href
+                                  ? 'bg-[#082F8C] text-white'
+                                  : 'text-white/80 hover:bg-[#2F54B6] hover:text-white',
+                                'block px-2 py-1 rounded-md text-sm transition'
+                              )}
                             >
                               {sub.name}
                             </Link>
                           ))}
                         </div>
                       </>
-                    ) : (
+                    ) : item.href && (
                       <Link
                         to={item.href}
                         onClick={() => setSidebarOpen(false)}
                         className={classNames(
                           location.pathname === item.href
-                            ? 'bg-blue-800 text-white'
-                            : 'text-blue-100 hover:bg-blue-600',
-                          'flex items-center px-2 py-2 rounded-md text-sm'
+                            ? 'bg-[#082F8C] text-white'
+                            : 'text-white/80 hover:bg-[#2F54B6] hover:text-white',
+                          'flex items-center px-2 py-2 rounded-md text-sm transition'
                         )}
                       >
                         <item.icon className="w-5 h-5 mr-3" />
@@ -163,10 +199,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Sidebar Desktop */}
       <div className="hidden lg:flex lg:w-64 lg:flex-col fixed top-0 bottom-0 z-50 bg-[#0B39AA] text-white">
-  <div className="flex items-center justify-center h-16 space-x-2 px-4">
-    <img src={logo} alt="Logo" className="h-10 w-10 object-contain" />
-    <span className="font-bold text-xl">Cepat Tanggap</span>
-  </div>
+        <div className="flex items-center justify-center h-16 space-x-2 px-4">
+          <img src={logo} alt="Logo" className="h-10 w-10 object-contain" />
+          <span className="font-bold text-xl">Cepat Tanggap</span>
+        </div>
         <nav className="mt-5 px-2 space-y-1">
           {navigation.map((item) => (
             <div key={item.name}>
@@ -176,7 +212,12 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                     onClick={() =>
                       setOpenDropdownName(openDropdownName === item.name ? null : item.name)
                     }
-                    className="w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md hover:bg-blue-600"
+                    className={classNames(
+                      isDropdownActive(item.children)
+                        ? 'bg-[#082F8C] text-white'
+                        : 'text-white/80 hover:bg-[#2F54B6] hover:text-white',
+                      'w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition'
+                    )}
                   >
                     <div className="flex items-center">
                       <item.icon className="mr-4 h-6 w-6" />
@@ -201,8 +242,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                         to={sub.href}
                         className={classNames(
                           location.pathname + location.search === sub.href
-                            ? 'bg-blue-800 text-white'
-                            : 'text-blue-100 hover:bg-blue-600 hover:text-white',
+                            ? 'bg-[#082F8C] text-white'
+                            : 'text-white/80 hover:bg-[#2F54B6] hover:text-white',
                           'block px-2 py-1 text-sm rounded-md transition'
                         )}
                       >
@@ -211,13 +252,13 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                     ))}
                   </div>
                 </>
-              ) : (
+              ) : item.href && (
                 <Link
                   to={item.href}
                   className={classNames(
                     location.pathname === item.href
-                      ? 'bg-blue-800 text-white'
-                      : 'text-blue-100 hover:bg-blue-600 hover:text-white',
+                      ? 'bg-[#082F8C] text-white'
+                      : 'text-white/80 hover:bg-[#2F54B6] hover:text-white',
                     'flex items-center px-2 py-2 text-sm rounded-md transition'
                   )}
                 >

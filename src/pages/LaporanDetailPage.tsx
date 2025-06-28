@@ -5,6 +5,7 @@ import {
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getApi } from "../utils/api";
+import { useAuth } from "../contexts/AuthContext";
 
 type User = {
   nama: string;
@@ -37,6 +38,8 @@ const statusColorMap: Record<Laporan["status"], string> = {
 export const LaporanDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+
   const [laporan, setLaporan] = useState<Laporan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -94,8 +97,7 @@ export const LaporanDetailPage = () => {
   }
 
   if (error) return <p className="text-red-600">{error}</p>;
-  if (!laporan)
-    return <p className="text-gray-600">Laporan tidak ditemukan.</p>;
+  if (!laporan) return <p className="text-gray-600">Laporan tidak ditemukan.</p>;
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
@@ -120,9 +122,7 @@ export const LaporanDetailPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
         {/* Detail Laporan */}
         <div className="lg:col-span-3 order-2 lg:order-1 bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">
-            📝 Detail Laporan
-          </h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-4">📝 Detail Laporan</h2>
           <div className="space-y-4 text-sm text-gray-700">
             <div>
               <p className="font-semibold">Kategori:</p>
@@ -150,13 +150,11 @@ export const LaporanDetailPage = () => {
             </div>
           </div>
 
+          <hr className="my-6 border-t border-gray-200" />
 
-<hr className="my-6 border-t border-gray-200" />
-          
+          {/* Detail Pelapor */}
           <div className="">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">
-              👤 Detail Pelapor
-            </h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-4">👤 Detail Pelapor</h2>
             <div className="space-y-4 text-sm text-gray-700">
               <div>
                 <p className="font-semibold">Nama:</p>
@@ -186,7 +184,7 @@ export const LaporanDetailPage = () => {
           </div>
         </div>
 
-        {/* Foto & Detail Pelapor */}
+        {/* Foto & Form */}
         <div className="lg:col-span-3 order-1 lg:order-2 flex flex-col gap-6">
           {laporan.foto && (
             <img
@@ -196,63 +194,63 @@ export const LaporanDetailPage = () => {
             />
           )}
 
-          {/* Form Ubah Status */}
-          <div className=" space-y-4 bg-white p-6 rounded-lg shadow">
-            <label className="block text-sm font-medium text-gray-700">
-              Ubah Status
-            </label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as Laporan["status"])}
-              className="w-full p-2 border border-gray-300 rounded"
-            >
-              <option value="ditolak">Ditolak</option>
-              <option value="pending">Pending</option>
-              <option value="diproses">Diproses</option>
-              <option value="selesai">Selesai</option>
-            </select>
+          {/* Form Ubah Status (hanya untuk admin) */}
+          {user?.role === "admin" && (
+            <div className="space-y-4 bg-white p-6 rounded-lg shadow">
+              <label className="block text-sm font-medium text-gray-700">
+                Ubah Status
+              </label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as Laporan["status"])}
+                className="w-full p-2 border border-gray-300 rounded"
+              >
+                <option value="ditolak">Ditolak</option>
+                <option value="pending">Pending</option>
+                <option value="diproses">Diproses</option>
+                <option value="selesai">Selesai</option>
+              </select>
 
-            <label className="block text-sm font-medium text-gray-700">
-              Tanggapan
-            </label>
-            <textarea
-              value={tanggapan}
-              onChange={(e) => setTanggapan(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded"
-              placeholder="Masukkan tanggapan..."
-              rows={3}
-            />
+              <label className="block text-sm font-medium text-gray-700">
+                Tanggapan
+              </label>
+              <textarea
+                value={tanggapan}
+                onChange={(e) => setTanggapan(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded"
+                placeholder="Masukkan tanggapan..."
+                rows={3}
+              />
 
-            <label className="block text-sm font-medium text-gray-700">
-              Foto Tanggapan
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="block w-full text-sm text-gray-700 border border-gray-300 rounded"
-            />
+              <label className="block text-sm font-medium text-gray-700">
+                Foto Tanggapan
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                className="block w-full text-sm text-gray-700 border border-gray-300 rounded"
+              />
 
-            {file && (
-              <div className="mt-4">
-                <p className="text-sm text-gray-600 mb-1">Preview Foto:</p>
-                <img
-                  src={URL.createObjectURL(file)}
-                  alt="Preview"
-                  className="w-full max-h-64 object-cover rounded border"
-                />
-              </div>
-            )}
+              {file && (
+                <div className="mt-4">
+                  <p className="text-sm text-gray-600 mb-1">Preview Foto:</p>
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt="Preview"
+                    className="w-full max-h-64 object-cover rounded border"
+                  />
+                </div>
+              )}
 
-            <button
-              onClick={handleSubmit}
-              className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-            >
-              Simpan
-            </button>
-          </div>
-
-          
+              <button
+                onClick={handleSubmit}
+                className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+              >
+                Simpan
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

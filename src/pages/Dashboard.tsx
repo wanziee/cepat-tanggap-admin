@@ -5,7 +5,13 @@ import {
   UsersIcon,
   DocumentTextIcon,
   UserCircleIcon,
+  ClockIcon,
 } from "@heroicons/react/24/outline";
+import moment from "moment";
+import "moment/locale/id"; // sekarang tidak error
+
+moment.locale("id");
+
 
 type User = {
   id: number;
@@ -38,6 +44,21 @@ type Laporan = {
   };
 };
 
+const getStatusColorClass = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "pending":
+      return "text-yellow-600";
+    case "diproses":
+      return "text-blue-600";
+    case "selesai":
+      return "text-green-600";
+    case "ditolak":
+      return "text-red-600";
+    default:
+      return "text-gray-600";
+  }
+};
+
 export const Dashboard = () => {
   const { user } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
@@ -52,7 +73,13 @@ export const Dashboard = () => {
         const laporanRes = await api.get("/api/laporan");
 
         setUsers(userRes.data.data);
-        setLaporans(laporanRes.data.data);
+        setLaporans(
+          laporanRes.data.data.sort(
+            (a: Laporan, b: Laporan) =>
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime()
+          )
+        );
       } catch (err) {
         console.error("Gagal memuat data:", err);
       } finally {
@@ -119,20 +146,44 @@ export const Dashboard = () => {
         />
       </div>
 
-      {/* Recent Activity (dummy) */}
-      <div className="mt-8">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">
+      {/* Recent Activity */}
+      <div className="mt-10">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
           Aktivitas Terbaru
         </h2>
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
+        <div className="bg-white shadow rounded-lg overflow-hidden">
           <ul role="list" className="divide-y divide-gray-200">
-            <li className="px-4 py-4 sm:px-6">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-blue-600 truncate">
-                  Tidak ada aktivitas terbaru
-                </p>
-              </div>
-            </li>
+            {laporans.slice(0, 5).map((laporan) => (
+              <li key={laporan.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50 transition">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-blue-600">
+                    {laporan.kategori}
+                  </p>
+                  <div className="ml-2 flex-shrink-0 flex items-center text-sm text-gray-500">
+                    <ClockIcon className="h-4 w-4 mr-1" />
+                    {moment(laporan.created_at).fromNow()}
+                  </div>
+                </div>
+                <div className="mt-1 text-sm text-gray-700 line-clamp-2">
+                  {laporan.deskripsi}
+                </div>
+                <div className="mt-2 text-sm text-gray-500">
+                  Dilaporkan oleh{" "}
+                  <span className="font-medium text-gray-900">
+                    {laporan.user?.nama || "Pengguna"}
+                  </span>{" "}
+                  - Status:{" "}
+                  <span className={`capitalize font-semibold ${getStatusColorClass(laporan.status)}`}>
+                    {laporan.status}
+                  </span>
+                </div>
+              </li>
+            ))}
+            {laporans.length === 0 && (
+              <li className="px-4 py-4 text-gray-500 text-sm">
+                Tidak ada laporan terbaru.
+              </li>
+            )}
           </ul>
         </div>
       </div>
@@ -155,10 +206,14 @@ const StatCard = ({
   <div className="bg-white overflow-hidden shadow rounded-lg">
     <div className="p-5">
       <div className="flex items-center">
-        <div className={`flex-shrink-0 ${bgColor} rounded-md p-3`}>{icon}</div>
+        <div className={`flex-shrink-0 ${bgColor} rounded-md p-3`}>
+          {icon}
+        </div>
         <div className="ml-5 w-0 flex-1">
           <dl>
-            <dt className="text-sm font-medium text-gray-500 truncate">{title}</dt>
+            <dt className="text-sm font-medium text-gray-500 truncate">
+              {title}
+            </dt>
             <dd className="flex items-baseline">
               <div className="text-2xl font-semibold text-gray-900">
                 {count}

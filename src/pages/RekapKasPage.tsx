@@ -288,18 +288,13 @@ export const RekapKasPage = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-8">
-      <h1 className="text-2xl font-bold text-gray-800">
-        💰 Rekap Kas {currentRt && `RT ${currentRt}`} {currentRw && `RW ${currentRw}`}
+    <div className="max-w-6xl mx-auto p-6 ">
+      <h1 className="text-2xl font-bold text-gray-800 mb-3">
+      Rekap Kas {currentRt && `RT ${currentRt}`} {currentRw && `RW ${currentRw}`}
       </h1>
 
       <div className="flex justify-between items-center mb-4">
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow transition duration-150 ease-in-out"
-        >
-          + Tambah Transaksi
-        </button>
+
 
         <div className="flex gap-2">
           <label htmlFor="filterMonthYear" className="sr-only">
@@ -317,11 +312,17 @@ export const RekapKasPage = () => {
             ))}
           </select>
         </div>
+                <button
+          onClick={() => setShowForm(true)}
+          className="bg-[#0B39AA] hover:bg-[#2F57C6] text-white px-4 py-2 rounded shadow transition duration-150 ease-in-out"
+        >
+          + Tambah Transaksi
+        </button>
       </div>
 
       {/* Modal / Form Tambah Kas */}
       {showForm && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] backdrop-blur-sm flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
             <h2 className="text-xl font-bold mb-4 text-gray-800">Tambah Transaksi Kas</h2>
             <form onSubmit={handleAddKas} className="space-y-4">
@@ -394,33 +395,13 @@ export const RekapKasPage = () => {
       )}
 
       {selectedMonthYear && filteredDataByMonth.length > 0 ? (
-        <div className="space-y-4 border-t pt-6">
-          <h2 className="text-xl font-semibold text-indigo-700">{selectedMonthYear}</h2>
+        <div className="space-y-4  pt-6">
+          <h2 className="text-xl font-semibold text-black">{selectedMonthYear}</h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-            <div className="bg-green-50 border-l-4 border-green-600 p-3 rounded shadow-sm">
-              <p className="text-green-800 font-medium">Total Pemasukan</p>
-              <p className="text-lg font-bold text-green-700 mt-1">
-                Rp{totalPemasukanSelectedMonth.toLocaleString("id-ID")}
-              </p>
-            </div>
-            <div className="bg-red-50 border-l-4 border-red-600 p-3 rounded shadow-sm">
-              <p className="text-red-800 font-medium">Total Pengeluaran</p>
-              <p className="text-lg font-bold text-red-700 mt-1">
-                Rp{totalPengeluaranSelectedMonth.toLocaleString("id-ID")}
-              </p>
-            </div>
-            <div className="bg-indigo-50 border-l-4 border-indigo-600 p-3 rounded shadow-sm">
-              <p className="text-indigo-800 font-medium">Saldo Terakhir Bulan Ini</p>
-              <p className="text-lg font-bold text-indigo-700 mt-1">
-                Rp{saldoTerakhirSelectedMonth.toLocaleString("id-ID")}
-              </p>
-            </div>
-          </div>
 
           <div className="overflow-x-auto bg-white rounded-lg shadow">
-            <table className="min-w-full divide-y divide-gray-200 text-sm text-gray-700">
-              <thead className="bg-indigo-50 text-indigo-700 text-left">
+            <table className="min-w-full divide-y divide-gray-200 text-sm  text-gray-500">
+              <thead className="bg-gray-50 text-lef px-6 py-3 text-left text-xs font-medium text-gray-500 uppercaset">
                 <tr>
                   <th className="px-4 py-3">Tanggal</th>
                   <th className="px-4 py-3">Keterangan</th>
@@ -451,6 +432,26 @@ export const RekapKasPage = () => {
             </table>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+            <div className="bg-green-50 border-l-4 border-green-600 p-2 rounded shadow-sm">
+              <p className="text-green-800 font-medium">Total Pemasukan</p>
+              <p className="text-lg font-bold text-green-700 mt-1">
+                Rp{totalPemasukanSelectedMonth.toLocaleString("id-ID")}
+              </p>
+            </div>
+            <div className="bg-red-50 border-l-4 border-red-600 p-2 rounded shadow-sm">
+              <p className="text-red-800 font-medium">Total Pengeluaran</p>
+              <p className="text-lg font-bold text-red-700 mt-1">
+                Rp{totalPengeluaranSelectedMonth.toLocaleString("id-ID")}
+              </p>
+            </div>
+            <div className="bg-indigo-50 border-l-4 border-indigo-600 p-2 rounded shadow-sm">
+              <p className="text-indigo-800 font-medium">Saldo Terakhir Bulan Ini</p>
+              <p className="text-lg font-bold text-indigo-700 mt-1">
+                Rp{saldoTerakhirSelectedMonth.toLocaleString("id-ID")}
+              </p>
+            </div>
+          </div>
           <div
             ref={hiddenRef}
             style={{
@@ -519,7 +520,7 @@ export const RekapKasPage = () => {
           <div className="flex justify-end">
             <button
               onClick={handlePrintPDF}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 mt-2 rounded shadow transition duration-150 ease-in-out"
+              className="bg-[#0B39AA] hover:bg-[#2F57C6] text-white px-4 py-2 mt-2 rounded shadow transition duration-150 ease-in-out"
             >
               Cetak PDF {selectedMonthYear}
             </button>

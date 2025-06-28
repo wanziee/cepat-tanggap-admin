@@ -114,7 +114,7 @@ if (user?.role === "rt") {
         <h1 className="text-2xl font-bold text-gray-800">Manajemen Warga</h1>
         <button
           onClick={() => navigate("/warga/tambah")}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"
+          className="bg-[#0B39AA] hover:bg-[#2F57C6] text-white px-4 py-2 rounded-md flex items-center"
         >
           <UserIcon className="h-5 w-5 mr-2" />
           Tambah Warga
