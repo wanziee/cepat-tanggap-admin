@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const savedToken = localStorage.getItem(TOKEN_KEY);
         if (savedToken) {
           const api = axios.create({
-            baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+            baseURL: import.meta.env.VITE_API_URL || 'https://radiant-nourishment.up.railway.app',
             withCredentials: true,
             headers: {
               'Content-Type': 'application/json',
