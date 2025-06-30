@@ -10,7 +10,7 @@ import { useAuth } from "../contexts/AuthContext";
 type User = {
   nama: string;
   email: string;
-  nik: string;
+
   role: string;
   no_hp: string;
   alamat?: string;
@@ -164,10 +164,7 @@ export const LaporanDetailPage = () => {
                 <p className="font-semibold">Email:</p>
                 <p>{laporan.user?.email?.trim() || "-"}</p>
               </div>
-              <div>
-                <p className="font-semibold">NIK:</p>
-                <p>{laporan.user?.nik || "-"}</p>
-              </div>
+
               <div>
                 <p className="font-semibold">Nomor HP:</p>
                 <p>{laporan.user?.no_hp || "-"}</p>

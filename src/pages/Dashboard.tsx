@@ -8,7 +8,7 @@ import {
   ClockIcon,
 } from "@heroicons/react/24/outline";
 import moment from "moment";
-import "moment/locale/id"; // sekarang tidak error
+import "moment/locale/id"; 
 
 moment.locale("id");
 
